@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CYBER CLASH // NEON MULTIPLAYER ARCADE</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Orbitron & Rajdhani for Cyberpunk aesthetics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti for Victory Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* Custom Styling & Cyberpunk Themes */
+    * {
+      font-family: 'Rajdhani', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    h1, h2, h3, .font-cyber {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    body {
+      background-color: #05050a;
+      color: #e0f2fe;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(236, 72, 153, 0.15), transparent 70%),
+        radial-gradient(circle at 0% 100%, rgba(6, 182, 212, 0.15), transparent 70%);
+    }
+
+    /* Glassmorphism Containers */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.05);
+    }
+    .glass-card-magenta {
+      background: rgba(24, 15, 35, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(236, 72, 153, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.15);
+    }
+
+    /* Neon Glow Utilities */
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.6), inset 0 0 10px rgba(6, 182, 212, 0.4);
+    }
+    .glow-magenta {
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.6), inset 0 0 10px rgba(236, 72, 153, 0.4);
+    }
+    .text-glow-cyan {
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.8), 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .text-glow-magenta {
+      text-shadow: 0 0 10px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.4);
+    }
+
+    /* CRT Scanline Overlay Effect */
+    .crt-overlay {
+      position: relative;
+    }
+    .crt-overlay::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 15;
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    /* Cyber Grid Canvas Background Effect */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* Custom Buttons */
+    .cyber-btn {
+      position: relative;
+      transition: all 0.2s ease;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+    .cyber-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.2);
+    }
+    .cyber-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(6, 182, 212, 0.4);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-100 selection:bg-pink-500 selection:text-white">
+
+  <!-- Background Animated Cyber Grid -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Top Navigation Header -->
+  <header class="w-full px-4 py-3 border-b border-cyan-500/20 glass-card flex justify-between items-center sticky top-0 z-40">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded bg-gradient-to-tr from-cyan-500 to-pink-500 flex items-center justify-center font-bold text-black font-cyber text-lg shadow-lg">
+        ⚡
+      </div>
+      <h1 class="text-xl md:text-2xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 font-cyber">
+        CYBER CLASH
+      </h1>
+      <span class="hidden sm:inline-block text-xs uppercase px-2 py-0.5 rounded border border-cyan-500/40 text-cyan-300 bg-cyan-950/50">
+        v2.5 Arcade
+      </span>
+    </div>
+
+    <!-- Quick Audio & Help Buttons -->
+    <div class="flex items-center space-x-2 sm:space-x-4">
+      <button id="btn-crt-toggle" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/80 hover:border-cyan-500/50 text-xs font-semibold flex items-center gap-1.5 transition text-cyan-400">
+        📺 <span class="hidden sm:inline">CRT: ON</span>
+      </button>
+      <button id="btn-sound-toggle" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/80 hover:border-cyan-500/50 text-xs font-semibold flex items-center gap-1.5 transition">
+        <span id="sound-icon">🔊</span> <span id="sound-text" class="hidden sm:inline">SFX: ON</span>
+      </button>
+      <button id="btn-rules-toggle" class="px-3 py-1.5 rounded-lg border border-pink-500/40 bg-pink-950/40 hover:bg-pink-900/50 text-xs font-semibold text-pink-300 flex items-center gap-1.5 transition">
+        ❓ <span class="hidden sm:inline">How To Play</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 flex flex-col justify-center items-center relative z-10">
+    
+    <!-- 1. LANDING & LOBBY SYSTEM -->
+    <div id="view-lobby" class="w-full max-w-4xl space-y-6 transition-all duration-300">
+      
+      <!-- Hero Title Banner -->
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl sm:text-5xl font-black font-cyber text-glow-cyan tracking-wide uppercase">
+          Real-Time Neon Arena
+        </h2>
+        <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+          Play multiplayer games synchronized instantly across devices or tabs via local peer channels or take on AI Cyber Bots solo!
+        </p>
+      </div>
+
+      <!-- Player Setup & Room Selection -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Left: Profile Configuration -->
+        <div class="glass-card p-6 rounded-2xl space-y-5 border-t-2 border-t-cyan-500">
+          <h3 class="text-lg font-cyber text-cyan-400 flex items-center gap-2">
+            <span>👤</span> Player Profile
+          </h3>
+
+          <div class="space-y-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Player Handle / Call-Sign</label>
+            <input type="text" id="player-nickname" maxlength="12" placeholder="CYBER_KNIGHT"
+                   class="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-700 rounded-xl focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 font-mono text-cyan-300 font-bold text-base">
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Avatar Color Signature</label>
+            <div class="flex items-center gap-3" id="color-picker-container">
+              <!-- JS auto builds color buttons -->
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+            <span>Status: <strong class="text-emerald-400">Ready to Clash</strong></span>
+            <span id="player-id-badge" class="font-mono text-slate-500">ID: ----</span>
+          </div>
+        </div>
+
+        <!-- Right: Join or Create Room -->
+        <div class="glass-card-magenta p-6 rounded-2xl space-y-5 border-t-2 border-t-pink-500 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-cyber text-pink-400 flex items-center gap-2">
+              <span>⚔️</span> Matchmaking & Rooms
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Create a room code to play with friends on other tabs/phones, or test instantly with AI!
+            </p>
+
+            <div class="mt-4 space-y-3">
+              <button id="btn-create-room" class="cyber-btn w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 font-cyber font-bold tracking-wider text-white rounded-xl shadow-lg hover:from-pink-500 hover:to-purple-500 flex items-center justify-center gap-2">
+                <span>➕</span> CREATE MULTIPLAYER ROOM
+              </button>
+
+              <div class="relative flex py-1 items-center">
+                <div class="flex-grow border-t border-slate-700"></div>
+                <span class="flex-shrink mx-4 text-slate-500 text-xs font-mono uppercase">OR JOIN ROOM</span>
+                <div class="flex-grow border-t border-slate-700"></div>
+              </div>
+
+              <div class="flex gap-2">
+                <input type="text" id="room-code-input" uppercase maxlength="4" placeholder="CODE (e.g. X9K2)" 
+                       class="flex-1 px-4 py-2.5 bg-slate-950/80 border border-slate-700 rounded-xl focus:border-pink-500 focus:outline-none font-mono text-center text-pink-300 font-bold uppercase tracking-widest text-lg">
+                <button id="btn-join-room" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl font-cyber font-bold text-pink-400 transition">
+                  JOIN
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80 flex gap-2">
+            <button id="btn-solo-ai" class="w-full py-2 bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/40 rounded-xl text-xs font-cyber text-cyan-300 flex items-center justify-center gap-2 transition">
+              <span>🤖</span> INSTANT PRACTICE VS AI BOT
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. ROOM LOBBY SCREEN -->
+    <div id="view-room-lobby" class="w-full max-w-4xl space-y-6 hidden transition-all duration-300">
+      <div class="glass-card p-6 sm:p-8 rounded-2xl space-y-6">
+        
+        <!-- Header Room Info -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-4 gap-4">
+          <div>
+            <span class="text-xs font-mono text-slate-400 uppercase tracking-widest">Active Cyber Room</span>
+            <div class="flex items-center gap-3">
+              <h2 id="display-room-code" class="text-4xl font-extrabold font-cyber text-glow-cyan text-cyan-400 tracking-wider">XXXX</h2>
+              <button id="btn-copy-code" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded border border-slate-600 flex items-center gap-1">
+                📋 Copy Code
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="role-badge" class="px-3 py-1 bg-purple-950/80 border border-purple-500/40 text-purple-300 rounded-full text-xs font-mono uppercase font-bold">
+              HOST
+            </span>
+            <button id="btn-leave-room" class="px-4 py-2 bg-red-950/60 hover:bg-red-900/70 border border-red-500/40 text-red-400 rounded-xl text-xs font-bold font-cyber">
+              LEAVE ROOM
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Players List -->
+          <div class="space-y-3 md:col-span-1">
+            <h3 class="text-sm font-cyber text-slate-400 uppercase tracking-wider flex justify-between items-center">
+              <span>Players Connected</span>
+              <span id="player-count-tag" class="text-cyan-400">1/4</span>
+            </h3>
+            <div id="player-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <!-- JS Populates List -->
+            </div>
+          </div>
+
+          <!-- Host Controls & Game Select -->
+          <div class="space-y-4 md:col-span-2 border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0 md:pl-6">
+            <h3 class="text-sm font-cyber text-pink-400 uppercase tracking-wider">Select Arena Match Mode</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="game-mode-selector">
+              <!-- Mode 1: Snake Royale -->
+              <div data-mode="snake" class="mode-card p-3 rounded-xl border border-cyan-500/50 bg-cyan-950/20 cursor-pointer hover:border-cyan-400 transition flex flex-col justify-between">
+                <div>
+                  <div class="text-2xl mb-1">🐍</div>
+                  <h4 class="font-cyber font-bold text-sm text-cyan-300">Neon Snake Royale</h4>
+                  <p class="text-[11px] text-slate-400 mt-1">Multiplayer grid clash. Outmaneuver opponents & grab energy orbs!</p>
+                </div>
+                <span class="text-[10px] uppercase font-mono font-bold text-cyan-400 mt-2 block">1-4 Players</span>
+              </div>
+
+              <!-- Mode 2: Pong Duel -->
+              <div data-mode="pong" class="mode-card p-3 rounded-xl border border-slate-700 bg-slate-900/40 cursor-pointer hover:border-cyan-400 transition flex flex-col justify-between">
+                <div>
+                  <div class="text-2xl mb-1">🏓</div>
+                  <h4 class="font-cyber font-bold text-sm text-pink-300">Cyber Pong Duel</h4>
+                  <p class="text-[11px] text-slate-400 mt-1">High-velocity paddle combat with active power-ups.</p>
+                </div>
+                <span class="text-[10px] uppercase font-mono font-bold text-pink-400 mt-2 block">2 Players (or AI)</span>
+              </div>
+
+              <!-- Mode 3: Laser Blast -->
+              <div data-mode="shooter" class="mode-card p-3 rounded-xl border border-slate-700 bg-slate-900/40 cursor-pointer hover:border-cyan-400 transition flex flex-col justify-between">
+                <div>
+                  <div class="text-2xl mb-1">🚀</div>
+                  <h4 class="font-cyber font-bold text-sm text-yellow-300">Retro Laser Blast</h4>
+                  <p class="text-[11px] text-slate-400 mt-1">Top-down arcade ship combat. Shoot lasers, grab shields!</p>
+                </div>
+                <span class="text-[10px] uppercase font-mono font-bold text-yellow-400 mt-2 block">1-4 Players</span>
+              </div>
+            </div>
+
+            <!-- Host Match Options -->
+            <div class="grid grid-cols-2 gap-4 pt-2">
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase">Game Speed</label>
+                <select id="select-game-speed" class="w-full mt-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs font-mono text-slate-200">
+                  <option value="normal">Normal Cyber</option>
+                  <option value="fast">Hyper Speed</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase">Target Score Limit</label>
+                <select id="select-score-limit" class="w-full mt-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs font-mono text-slate-200">
+                  <option value="5">First to 5 PTS</option>
+                  <option value="10" selected>First to 10 PTS</option>
+                  <option value="15">First to 15 PTS</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Start Game CTA Button -->
+            <div class="pt-4">
+              <button id="btn-start-game" class="cyber-btn w-full py-3.5 bg-gradient-to-r from-cyan-500 via-pink-500 to-yellow-500 font-cyber font-black tracking-widest text-black text-lg rounded-xl shadow-xl hover:brightness-110">
+                🚀 LAUNCH MATCH
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. ACTIVE GAMEPLAY CANVAS ARENA -->
+    <div id="view-gameplay" class="w-full max-w-5xl flex flex-col items-center space-y-3 hidden">
+      
+      <!-- Live Game HUD Bar -->
+      <div class="w-full glass-card px-4 py-2.5 rounded-xl flex justify-between items-center text-xs font-mono border-b-2 border-cyan-500">
+        <div class="flex items-center gap-3">
+          <span id="hud-mode-name" class="font-cyber font-bold text-cyan-400 text-sm">NEON SNAKE</span>
+          <span id="hud-status" class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[10px]">LIVE MATCH</span>
+        </div>
+
+        <!-- Live Scoreboard Summary -->
+        <div id="hud-scoreboard" class="flex items-center gap-4">
+          <!-- JS dynamic players score -->
+        </div>
+
+        <div>
+          <button id="btn-exit-match" class="px-3 py-1 bg-red-950/70 hover:bg-red-900 border border-red-500/40 text-red-300 rounded font-bold text-[11px] transition">
+            QUIT
+          </button>
+        </div>
+      </div>
+
+      <!-- Main HTML5 Canvas Box -->
+      <div id="canvas-container" class="relative w-full aspect-[16/9] max-h-[65vh] glass-card rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl flex justify-center items-center crt-overlay">
+        <canvas id="game-canvas" class="w-full h-full object-contain block bg-slate-950"></canvas>
+
+        <!-- Live Event Log Overlay Feed -->
+        <div id="game-feed" class="absolute top-3 left-3 pointer-events-none space-y-1 max-w-xs font-mono text-xs">
+          <!-- Live events append here -->
+        </div>
+
+        <!-- Pre-Match Countdown Overlay -->
+        <div id="countdown-overlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col justify-center items-center z-20 hidden">
+          <span id="countdown-number" class="text-7xl font-black font-cyber text-pink-500 animate-ping">3</span>
+          <span class="text-sm font-cyber text-cyan-300 tracking-widest mt-4">PREPARE YOUR CONTROLS</span>
+        </div>
+
+        <!-- Mobile Touch Game Controls Overlay -->
+        <div id="touch-controls" class="absolute bottom-3 left-3 right-3 flex justify-between items-center pointer-events-none sm:hidden">
+          <!-- Left Touch Pad / D-Pad -->
+          <div class="pointer-events-auto grid grid-cols-3 gap-1 w-32 h-32 bg-slate-900/60 p-1.5 rounded-full backdrop-blur border border-slate-700/50">
+            <div></div>
+            <button id="t-up" class="bg-slate-800/80 text-cyan-400 rounded-t-lg active:bg-cyan-500 active:text-black flex items-center justify-center font-bold">▲</button>
+            <div></div>
+            <button id="t-left" class="bg-slate-800/80 text-cyan-400 rounded-l-lg active:bg-cyan-500 active:text-black flex items-center justify-center font-bold">◄</button>
+            <div class="bg-slate-950/50 rounded-full flex items-center justify-center text-[10px] text-slate-500 font-mono">PAD</div>
+            <button id="t-right" class="bg-slate-800/80 text-cyan-400 rounded-r-lg active:bg-cyan-500 active:text-black flex items-center justify-center font-bold">►</button>
+            <div></div>
+            <button id="t-down" class="bg-slate-800/80 text-cyan-400 rounded-b-lg active:bg-cyan-500 active:text-black flex items-center justify-center font-bold">▼</button>
+            <div></div>
+          </div>
+
+          <!-- Right Action Button (Shoot / Boost) -->
+          <div class="pointer-events-auto flex items-end">
+            <button id="t-action" class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-600 to-yellow-500 text-white font-cyber font-black shadow-lg active:scale-95 flex items-center justify-center text-xs border border-pink-300">
+              ACTION
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Keyboard Hint Bar -->
+      <div class="w-full flex justify-between items-center text-[11px] text-slate-400 font-mono px-2">
+        <span>🎮 Desktop Controls: <strong class="text-cyan-300">W A S D / Arrow Keys</strong> to move | <strong class="text-pink-400">Spacebar</strong> for Special/Action</span>
+        <span class="hidden sm:inline text-slate-500">Cross-Tab Real-time Synced</span>
+      </div>
+    </div>
+
+    <!-- 4. VICTORY & GAME OVER PODIUM OVERLAY -->
+    <div id="view-victory" class="w-full max-w-lg space-y-6 hidden transition-all duration-300">
+      <div class="glass-card-magenta p-8 rounded-2xl text-center space-y-6 border-2 border-pink-500/50 shadow-2xl">
+        <div class="text-5xl animate-bounce">🏆</div>
+        <div>
+          <span class="text-xs font-mono uppercase text-pink-400 tracking-widest font-bold">MATCH VICTORY</span>
+          <h2 id="winner-name" class="text-3xl font-black font-cyber text-glow-magenta text-yellow-400 mt-1">
+            PLAYER_1
+          </h2>
+          <p id="winner-subtext" class="text-sm text-slate-300 mt-1">Dominated the Neon Arena!</p>
+        </div>
+
+        <!-- Leaderboard Summary Box -->
+        <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 space-y-2 text-left">
+          <h4 class="text-xs font-cyber text-slate-400 uppercase tracking-wider mb-2">Final Match Standings</h4>
+          <div id="victory-standings-list" class="space-y-1.5 font-mono text-sm">
+            <!-- Dynamic standings list -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 pt-2">
+          <button id="btn-return-lobby" class="cyber-btn flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 font-cyber font-bold text-black rounded-xl text-sm">
+            RETURN TO LOBBY
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. ONBOARDING & RULES MODAL -->
+    <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+      <div class="glass-card max-w-xl w-full p-6 sm:p-8 rounded-2xl space-y-5 border border-cyan-500/40 relative">
+        <button id="btn-close-rules" class="absolute top-4 right-4 text-slate-400 hover:text-white font-mono text-xl">✕</button>
+
+        <h3 class="text-2xl font-black font-cyber text-cyan-400 flex items-center gap-2">
+          <span>🎮</span> CYBER CLASH MANUAL
+        </h3>
+
+        <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+          
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-cyan-500/20">
+            <h4 class="font-cyber font-bold text-cyan-300 mb-1 text-sm">🌐 How Cross-Device Real-time Works</h4>
+            <p>Open this page on another tab or send the 4-character Room Code to a friend on their phone/laptop! Screens sync automatically via browser peer channels.</p>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-cyber font-bold text-pink-400 text-sm">🕹️ Game Modes Breakdown</h4>
+            
+            <div class="pl-2 border-l-2 border-cyan-500">
+              <strong class="text-cyan-300">1. Neon Snake Royale:</strong> Guide your glowing snake. Collect energy glowing orbs to gain size and +1 score. Don't hit walls or opponents' trails!
+            </div>
+
+            <div class="pl-2 border-l-2 border-pink-500">
+              <strong class="text-pink-300">2. Cyber Pong Duel:</strong> Classic head-to-head neon table duel. Collect green speed boosts, double ball split power-ups, or freeze opponent paddles.
+            </div>
+
+            <div class="pl-2 border-l-2 border-yellow-500">
+              <strong class="text-yellow-300">3. Retro Laser Blast:</strong> Pilot your ship with WASD or Touch D-Pad. Press <span class="text-white font-mono">SPACEBAR</span> or <span class="text-white font-mono">ACTION</span> button to blast neon lasers and vaporize opponents!
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-purple-500/20">
+            <h4 class="font-cyber font-bold text-purple-300 mb-1 text-sm">🤖 Solo Testing Mode</h4>
+            <p>No friends nearby right now? Click <strong>"INSTANT PRACTICE VS AI BOT"</strong> in the main screen to test full arcade combat against automated Cyber Bots instantly!</p>
+          </div>
+        </div>
+
+        <button id="btn-rules-ack" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-cyber font-bold rounded-xl text-sm transition">
+          UNDERSTOOD // GOT IT
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Sound Synthesizer & Main Arcade Game Script -->
+  <script>
+    /**
+     * CYBER CLASH ARCADE - Main Logic Engine
+     * Handles Web Audio API Synthesizers, Real-Time Cross-Tab Synchronization,
+     * Responsive HTML5 Canvas Graphics, and Game State Management.
+     */
+
+    // CRT Scanline Toggle
+    const crtBtn = document.getElementById('btn-crt-toggle');
+    const canvasContainer = document.getElementById('canvas-container');
+    let crtEnabled = true;
+
+    crtBtn.addEventListener('click', () => {
+      crtEnabled = !crtEnabled;
+      if (crtEnabled) {
+        canvasContainer.classList.add('crt-overlay');
+        crtBtn.innerHTML = '📺 <span class="hidden sm:inline">CRT: ON</span>';
+      } else {
+        canvasContainer.classList.remove('crt-overlay');
+        crtBtn.innerHTML = '📺 <span class="hidden sm:inline">CRT: OFF</span>';
+      }
+      soundEngine.sfxBounce();
+    });
+
+    // --- 1. SOUND SYNTHESIZER (Web Audio API) ---
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.15) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.warn('Audio error:', e);
+        }
+      }
+
+      // Sound FX Presets
+      sfxPickup() {
+        this.playTone(523.25, 'sine', 0.08, 0.2); // C5
+        setTimeout(() => this.playTone(659.25, 'sine', 0.1, 0.2), 60); // E5
+      }
+
+      sfxLaser() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.12);
+
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.12);
+        } catch(e){}
+      }
+
+      sfxBounce() {
+        this.playTone(220, 'triangle', 0.06, 0.15);
+      }
+
+      sfxExplode() {
+        this.playTone(90, 'sawtooth', 0.25, 0.3);
+      }
+
+      sfxWin() {
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'sine', 0.2, 0.2), idx * 90);
+        });
+      }
+    }
+
+    const soundEngine = new SoundEngine();
+
+    // --- 2. GLOBAL APP STATE & CONSTANTS ---
+    const AVATAR_COLORS = [
+      { name: 'Cyan Glow', hex: '#06b6d4', ring: 'ring-cyan-400' },
+      { name: 'Neon Pink', hex: '#ec4899', ring: 'ring-pink-400' },
+      { name: 'Cyber Yellow', hex: '#eab308', ring: 'ring-yellow-400' },
+      { name: 'Plasma Lime', hex: '#10b981', ring: 'ring-emerald-400' },
+      { name: 'Vortex Purple', hex: '#a855f7', ring: 'ring-purple-400' }
+    ];
+
+    const state = {
+      player: {
+        id: 'P_' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        nickname: 'PLAYER_' + Math.floor(100 + Math.random() * 900),
+        color: AVATAR_COLORS[0].hex
+      },
+      room: {
+        code: null,
+        isHost: false,
+        isAI: false,
+        mode: 'snake', // snake | pong | shooter
+        speed: 'normal',
+        scoreLimit: 10,
+        players: [], // { id, nickname, color, ready, score, isBot }
+        status: 'lobby' // lobby | playing | ended
+      },
+      input: {
+        up: false,
+        down: false,
+        left: false,
+        right: false,
+        action: false
+      },
+      broadcastChannel: null,
+      gameLoopId: null
+    };
+
+    // --- 3. CROSS-TAB MULTIPLAYER SYNC ENGINE ---
+    function initNetworking(roomCode) {
+      if (state.broadcastChannel) {
+        state.broadcastChannel.close();
+      }
+      state.broadcastChannel = new BroadcastChannel('CYBER_CLASH_' + roomCode);
+
+      // BroadcastChannel Message Listener
+      state.broadcastChannel.onmessage = (event) => {
+        handleNetworkMessage(event.data);
+      };
+
+      // localStorage Fallback Listener for cross-window sync in legacy contexts
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'CYBER_CLASH_MSG_' + roomCode && event.newValue) {
+          try {
+            const data = JSON.parse(event.newValue);
+            if (data.senderId !== state.player.id) {
+              handleNetworkMessage(data);
+            }
+          } catch(e) {}
+        }
+      });
+    }
+
+    function broadcastMsg(type, payload = {}) {
+      const msg = {
+        type,
+        senderId: state.player.id,
+        payload,
+        timestamp: Date.now()
+      };
+
+      if (state.broadcastChannel) {
+        state.broadcastChannel.postMessage(msg);
+      }
+
+      // Sync via LocalStorage as fallback
+      if (state.room.code) {
+        try {
+          localStorage.setItem('CYBER_CLASH_MSG_' + state.room.code, JSON.stringify(msg));
+        } catch(e) {}
+      }
+    }
+
+    function handleNetworkMessage(msg) {
+      switch (msg.type) {
+        case 'PLAYER_JOIN':
+          if (state.room.isHost) {
+            // Add player if not already in room
+            const exists = state.room.players.find(p => p.id === msg.payload.player.id);
+            if (!exists) {
+              state.room.players.push(msg.payload.player);
+              syncRoomStateToAll();
+              addLogFeed(`${msg.payload.player.nickname} joined the room.`);
+            }
+          }
+          break;
+
+        case 'ROOM_STATE_SYNC':
+          if (!state.room.isHost) {
+            state.room.players = msg.payload.players;
+            state.room.mode = msg.payload.mode;
+            state.room.speed = msg.payload.speed;
+            state.room.scoreLimit = msg.payload.scoreLimit;
+            state.room.status = msg.payload.status;
+            renderRoomLobbyUI();
+
+            if (msg.payload.status === 'playing' && currentView !== 'view-gameplay') {
+              startGameSession(false);
+            }
+          }
+          break;
+
+        case 'PLAYER_INPUT':
+          // Host receives player input state in real-time
+          if (state.room.isHost && gameSession) {
+            gameSession.handleRemoteInput(msg.senderId, msg.payload.input);
+          }
+          break;
+
+        case 'GAME_STATE_UPDATE':
+          // Client receives frame render update from Host
+          if (!state.room.isHost && gameSession) {
+            gameSession.applyGameStateUpdate(msg.payload);
+          }
+          break;
+
+        case 'MATCH_ENDED':
+          showVictoryScreen(msg.payload.winner, msg.payload.standings);
+          break;
+      }
+    }
+
+    function syncRoomStateToAll() {
+      if (!state.room.isHost) return;
+      broadcastMsg('ROOM_STATE_SYNC', {
+        players: state.room.players,
+        mode: state.room.mode,
+        speed: state.room.speed,
+        scoreLimit: state.room.scoreLimit,
+        status: state.room.status
+      });
+      renderRoomLobbyUI();
+    }
+
+    // --- 4. BACKGROUND CYBER CANVAS ANIMATION ---
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let gridOffset = 0;
+
+    function resizeBgCanvas() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeBgCanvas);
+    resizeBgCanvas();
+
+    function renderCyberGridBackground() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      bgCtx.strokeStyle = 'rgba(6, 182, 212, 0.12)';
+      bgCtx.lineWidth = 1;
+
+      const gridSize = 40;
+      gridOffset = (gridOffset + 0.3) % gridSize;
+
+      // Vertical lines
+      for (let x = 0; x < bgCanvas.width; x += gridSize) {
+        bgCtx.beginPath();
+        bgCtx.moveTo(x, 0);
+        bgCtx.lineTo(x, bgCanvas.height);
+        bgCtx.stroke();
+      }
+
+      // Horizontal moving lines
+      for (let y = gridOffset; y < bgCanvas.height; y += gridSize) {
+        bgCtx.beginPath();
+        bgCtx.moveTo(0, y);
+        bgCtx.lineTo(bgCanvas.width, y);
+        bgCtx.stroke();
+      }
+
+      requestAnimationFrame(renderCyberGridBackground);
+    }
+    renderCyberGridBackground();
+
+    // --- 5. UI VIEW MANAGEMENT & INTERACTION ---
+    let currentView = 'view-lobby';
+
+    function switchView(viewId) {
+      ['view-lobby', 'view-room-lobby', 'view-gameplay', 'view-victory'].forEach(id => {
+        const el = document.getElementById(id);
+        if (id === viewId) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+      currentView = viewId;
+    }
+
+    // Color picker initialization
+    const colorContainer = document.getElementById('color-picker-container');
+    AVATAR_COLORS.forEach((c, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `w-7 h-7 rounded-full transition transform hover:scale-110 ${idx === 0 ? 'ring-2 ring-white scale-110' : ''}`;
+      btn.style.backgroundColor = c.hex;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#color-picker-container button').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
+        btn.classList.add('ring-2', 'ring-white', 'scale-110');
+        state.player.color = c.hex;
+        soundEngine.sfxBounce();
+      });
+      colorContainer.appendChild(btn);
+    });
+
+    // Handle Nickname change
+    const nameInput = document.getElementById('player-nickname');
+    nameInput.value = state.player.nickname;
+    document.getElementById('player-id-badge').textContent = `ID: ${state.player.id}`;
+
+    nameInput.addEventListener('input', (e) => {
+      state.player.nickname = e.target.value.trim() || 'CYBER_PLAYER';
+    });
+
+    // Sound toggle listener
+    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+      soundEngine.enabled = !soundEngine.enabled;
+      document.getElementById('sound-icon').textContent = soundEngine.enabled ? '🔊' : '🔇';
+      document.getElementById('sound-text').textContent = soundEngine.enabled ? 'SFX: ON' : 'SFX: OFF';
+      if (soundEngine.enabled) soundEngine.sfxBounce();
+    });
+
+    // Rules Modal listeners
+    const modalRules = document.getElementById('modal-rules');
+    document.getElementById('btn-rules-toggle').addEventListener('click', () => {
+      modalRules.classList.remove('hidden');
+      soundEngine.sfxBounce();
+    });
+    document.getElementById('btn-close-rules').addEventListener('click', () => modalRules.classList.add('hidden'));
+    document.getElementById('btn-rules-ack').addEventListener('click', () => modalRules.classList.add('hidden'));
+
+    // Mode Selector listeners
+    document.querySelectorAll('#game-mode-selector .mode-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (!state.room.isHost) return;
+        document.querySelectorAll('#game-mode-selector .mode-card').forEach(c => {
+          c.classList.remove('border-cyan-500/50', 'bg-cyan-950/20');
+          c.classList.add('border-slate-700', 'bg-slate-900/40');
+        });
+        card.classList.remove('border-slate-700', 'bg-slate-900/40');
+        card.classList.add('border-cyan-500/50', 'bg-cyan-950/20');
+        
+        state.room.mode = card.dataset.mode;
+        soundEngine.sfxBounce();
+        syncRoomStateToAll();
+      });
+    });
+
+    document.getElementById('select-game-speed').addEventListener('change', (e) => {
+      if (state.room.isHost) {
+        state.room.speed = e.target.value;
+        syncRoomStateToAll();
+      }
+    });
+
+    document.getElementById('select-score-limit').addEventListener('change', (e) => {
+      if (state.room.isHost) {
+        state.room.scoreLimit = parseInt(e.target.value);
+        syncRoomStateToAll();
+      }
+    });
+
+    // --- 6. ROOM LOBBY LOGIC ---
+    document.getElementById('btn-create-room').addEventListener('click', () => {
+      soundEngine.init();
+      soundEngine.sfxBounce();
+      
+      const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+      state.room = {
+        code: roomCode,
+        isHost: true,
+        isAI: false,
+        mode: 'snake',
+        speed: 'normal',
+        scoreLimit: 10,
+        players: [{ ...state.player, score: 0 }],
+        status: 'lobby'
+      };
+
+      initNetworking(roomCode);
+      switchView('view-room-lobby');
+      renderRoomLobbyUI();
+    });
+
+    document.getElementById('btn-join-room').addEventListener('click', () => {
+      const input = document.getElementById('room-code-input').value.trim().toUpperCase();
+      if (input.length !== 4) {
+        alert('Please enter a valid 4-character Room Code.');
+        return;
+      }
+      soundEngine.init();
+      soundEngine.sfxBounce();
+
+      state.room = {
+        code: input,
+        isHost: false,
+        isAI: false,
+        mode: 'snake',
+        speed: 'normal',
+        scoreLimit: 10,
+        players: [],
+        status: 'lobby'
+      };
+
+      initNetworking(input);
+      broadcastMsg('PLAYER_JOIN', { player: { ...state.player, score: 0 } });
+      switchView('view-room-lobby');
+      renderRoomLobbyUI();
+    });
+
+    // Solo AI Bot Quick Start Button
+    document.getElementById('btn-solo-ai').addEventListener('click', () => {
+      soundEngine.init();
+      soundEngine.sfxBounce();
+
+      const roomCode = 'AI_' + Math.floor(10 + Math.random() * 90);
+      const aiBot = {
+        id: 'BOT_CYBER',
+        nickname: 'NEXUS_AI 🤖',
+        color: '#ec4899',
+        score: 0,
+        isBot: true
+      };
+
+      state.room = {
+        code: roomCode,
+        isHost: true,
+        isAI: true,
+        mode: 'snake',
+        speed: 'normal',
+        scoreLimit: 10,
+        players: [{ ...state.player, score: 0 }, aiBot],
+        status: 'lobby'
+      };
+
+      initNetworking(roomCode);
+      switchView('view-room-lobby');
+      renderRoomLobbyUI();
+    });
+
+    document.getElementById('btn-copy-code').addEventListener('click', () => {
+      if (state.room.code) {
+        navigator.clipboard.writeText(state.room.code);
+        soundEngine.sfxBounce();
+        alert(`Room Code copied: ${state.room.code}`);
+      }
+    });
+
+    document.getElementById('btn-leave-room').addEventListener('click', () => {
+      soundEngine.sfxBounce();
+      if (state.broadcastChannel) state.broadcastChannel.close();
+      switchView('view-lobby');
+    });
+
+    document.getElementById('btn-start-game').addEventListener('click', () => {
+      if (!state.room.isHost) return;
+      soundEngine.sfxWin();
+      state.room.status = 'playing';
+      syncRoomStateToAll();
+      startGameSession(true);
+    });
+
+    function renderRoomLobbyUI() {
+      document.getElementById('display-room-code').textContent = state.room.code || 'XXXX';
+      document.getElementById('role-badge').textContent = state.room.isHost ? 'ROOM HOST' : 'CLIENT';
+      document.getElementById('player-count-tag').textContent = `${state.room.players.length}/4`;
+
+      // Enable / disable host controls
+      document.getElementById('btn-start-game').style.display = state.room.isHost ? 'block' : 'none';
+      document.querySelectorAll('#game-mode-selector .mode-card').forEach(card => {
+        card.style.pointerEvents = state.room.isHost ? 'auto' : 'none';
+      });
+
+      // Update Player List UI
+      const listContainer = document.getElementById('player-list-container');
+      listContainer.innerHTML = '';
+
+      state.room.players.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2.5 bg-slate-900/90 rounded-xl border border-slate-800';
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="w-3.5 h-3.5 rounded-full shadow-glow" style="background-color: ${p.color}"></span>
+            <span class="font-mono text-sm font-bold ${p.id === state.player.id ? 'text-cyan-300' : 'text-slate-200'}">
+              ${p.nickname} ${p.id === state.player.id ? '(You)' : ''}
+            </span>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded ${p.isBot ? 'bg-pink-950 text-pink-300' : 'bg-emerald-950 text-emerald-300'}">
+            ${p.isBot ? 'AI BOT' : 'READY'}
+          </span>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    // --- 7. INPUT CONTROLLER (Desktop Keyboard + Mobile Touch) ---
+    function setupControls() {
+      window.addEventListener('keydown', (e) => {
+        let keyHandled = false;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { state.input.up = true; keyHandled = true; }
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { state.input.down = true; keyHandled = true; }
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { state.input.left = true; keyHandled = true; }
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { state.input.right = true; keyHandled = true; }
+        if (e.key === ' ' || e.key === 'Spacebar') { state.input.action = true; keyHandled = true; }
+
+        if (keyHandled && currentView === 'view-gameplay') {
+          e.preventDefault();
+          sendInputState();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') state.input.up = false;
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') state.input.down = false;
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.input.left = false;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.input.right = false;
+        if (e.key === ' ' || e.key === 'Spacebar') state.input.action = false;
+
+        if (currentView === 'view-gameplay') {
+          sendInputState();
+        }
+      });
+
+      // Mobile Touch Buttons Setup
+      const bindTouch = (id, keyName) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          state.input[keyName] = true;
+          sendInputState();
+        });
+        btn.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          state.input[keyName] = false;
+          sendInputState();
+        });
+      };
+
+      bindTouch('t-up', 'up');
+      bindTouch('t-down', 'down');
+      bindTouch('t-left', 'left');
+      bindTouch('t-right', 'right');
+      bindTouch('t-action', 'action');
+    }
+
+    function sendInputState() {
+      if (!state.room.isHost) {
+        broadcastMsg('PLAYER_INPUT', { input: state.input });
+      }
+    }
+
+    setupControls();
+
+    // Log Feed Helper
+    function addLogFeed(text) {
+      const feed = document.getElementById('game-feed');
+      if (!feed) return;
+      const msg = document.createElement('div');
+      msg.className = 'bg-slate-900/90 text-cyan-300 px-2.5 py-1 rounded border border-cyan-500/30 shadow backdrop-blur font-mono text-[11px] animate-fade-in';
+      msg.textContent = `> ${text}`;
+      feed.appendChild(msg);
+
+      setTimeout(() => {
+        if (msg.parentNode) msg.parentNode.removeChild(msg);
+      }, 4500);
+    }
+
+    // --- 8. MINI-GAMES ARCADE ENGINE ---
+    let gameSession = null;
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = 1280;
+      canvas.height = 720;
+    }
+    resizeCanvas();
+
+    function startGameSession(isHost) {
+      switchView('view-gameplay');
+      document.getElementById('game-feed').innerHTML = '';
+      
+      const modeNameMap = {
+        snake: 'NEON SNAKE ROYALE',
+        pong: 'CYBER PONG DUEL',
+        shooter: 'RETRO LASER BLAST'
+      };
+      document.getElementById('hud-mode-name').textContent = modeNameMap[state.room.mode];
+
+      // Countdown screen effect
+      const countdownOverlay = document.getElementById('countdown-overlay');
+      const countdownNum = document.getElementById('countdown-number');
+      countdownOverlay.classList.remove('hidden');
+
+      let count = 3;
+      countdownNum.textContent = count;
+      soundEngine.sfxBounce();
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNum.textContent = count;
+          soundEngine.sfxBounce();
+        } else {
+          clearInterval(timer);
+          countdownOverlay.classList.add('hidden');
+          soundEngine.sfxWin();
+          
+          if (state.room.mode === 'snake') {
+            gameSession = new SnakeRoyaleSession(isHost);
+          } else if (state.room.mode === 'pong') {
+            gameSession = new PongDuelSession(isHost);
+          } else if (state.room.mode === 'shooter') {
+            gameSession = new LaserBlastSession(isHost);
+          }
+        }
+      }, 800);
+    }
+
+    document.getElementById('btn-exit-match').addEventListener('click', () => {
+      if (gameSession) gameSession.destroy();
+      switchView('view-room-lobby');
+    });
+
+    // --- GAME CLASS 1: NEON SNAKE ROYALE ---
+    class SnakeRoyaleSession {
+      constructor(isHost) {
+        this.isHost = isHost;
+        this.gridCols = 40;
+        this.gridRows = 22.5;
+        this.cellW = canvas.width / 40;
+        this.cellH = canvas.height / 22.5;
+        this.snakes = {};
+        this.orbs = [];
+        this.inputs = {};
+        this.running = true;
+
+        if (this.isHost) {
+          this.initHostState();
+          this.gameLoop();
+        }
+      }
+
+      initHostState() {
+        const spawnPositions = [
+          { x: 5, y: 5, dx: 1, dy: 0 },
+          { x: 34, y: 17, dx: -1, dy: 0 },
+          { x: 5, y: 17, dx: 1, dy: 0 },
+          { x: 34, y: 5, dx: -1, dy: 0 }
+        ];
+
+        state.room.players.forEach((p, idx) => {
+          const spawn = spawnPositions[idx % 4];
+          this.snakes[p.id] = {
+            id: p.id,
+            nickname: p.nickname,
+            color: p.color,
+            body: [
+              { x: spawn.x, y: spawn.y },
+              { x: spawn.x - spawn.dx, y: spawn.y - spawn.dy },
+              { x: spawn.x - spawn.dx * 2, y: spawn.y - spawn.dy * 2 }
+            ],
+            dir: { x: spawn.dx, y: spawn.dy },
+            score: 0,
+            isBot: p.isBot || false
+          };
+          this.inputs[p.id] = { up: false, down: false, left: false, right: false };
+        });
+
+        this.spawnOrbs(5);
+        addLogFeed("Neon Snake Royale Started! Collect orbs & cut off opponents.");
+      }
+
+      spawnOrbs(count = 1) {
+        for (let i = 0; i < count; i++) {
+          this.orbs.push({
+            x: Math.floor(Math.random() * 38) + 1,
+            y: Math.floor(Math.random() * 20) + 1,
+            color: Math.random() > 0.3 ? '#06b6d4' : '#eab308'
+          });
+        }
+      }
+
+      handleRemoteInput(playerId, inputState) {
+        this.inputs[playerId] = inputState;
+      }
+
+      updateAI() {
+        Object.values(this.snakes).forEach(s => {
+          if (s.isBot && this.orbs.length > 0) {
+            const head = s.body[0];
+            const targetOrb = this.orbs[0];
+            
+            if (targetOrb.x > head.x && s.dir.x !== -1) s.dir = { x: 1, y: 0 };
+            else if (targetOrb.x < head.x && s.dir.x !== 1) s.dir = { x: -1, y: 0 };
+            else if (targetOrb.y > head.y && s.dir.y !== -1) s.dir = { x: 0, y: 1 };
+            else if (targetOrb.y < head.y && s.dir.y !== 1) s.dir = { x: 0, y: -1 };
+          }
+        });
+      }
+
+      gameLoop() {
+        if (!this.running) return;
+
+        // Apply Host player input
+        this.inputs[state.player.id] = state.input;
+
+        // Apply inputs to directions
+        Object.keys(this.snakes).forEach(id => {
+          const inp = this.inputs[id];
+          const s = this.snakes[id];
+          if (!s) return;
+
+          if (inp && !s.isBot) {
+            if (inp.up && s.dir.y !== 1) s.dir = { x: 0, y: -1 };
+            else if (inp.down && s.dir.y !== -1) s.dir = { x: 0, y: 1 };
+            else if (inp.left && s.dir.x !== 1) s.dir = { x: -1, y: 0 };
+            else if (inp.right && s.dir.x !== -1) s.dir = { x: 1, y: 0 };
+          }
+        });
+
+        this.updateAI();
+
+        // Move Snakes
+        Object.values(this.snakes).forEach(s => {
+          const head = s.body[0];
+          const newHead = { x: head.x + s.dir.x, y: head.y + s.dir.y };
+
+          // Check Wall Collisions (wrap around)
+          if (newHead.x < 0) newHead.x = 39;
+          if (newHead.x >= 40) newHead.x = 0;
+          if (newHead.y < 0) newHead.y = 22;
+          if (newHead.y >= 23) newHead.y = 0;
+
+          s.body.unshift(newHead);
+
+          // Orb Collection
+          let ateOrb = false;
+          this.orbs.forEach((orb, oIdx) => {
+            if (orb.x === newHead.x && orb.y === newHead.y) {
+              ateOrb = true;
+              s.score += 1;
+              soundEngine.sfxPickup();
+              this.orbs.splice(oIdx, 1);
+              this.spawnOrbs(1);
+              addLogFeed(`${s.nickname} absorbed an Energy Orb! (${s.score} PTS)`);
+            }
+          });
+
+          if (!ateOrb) {
+            s.body.pop();
+          }
+
+          // Check Win Condition
+          if (s.score >= state.room.scoreLimit) {
+            this.endMatch(s);
+          }
+        });
+
+        // Broadcast State from Host to Clients
+        const renderPayload = {
+          snakes: this.snakes,
+          orbs: this.orbs
+        };
+
+        broadcastMsg('GAME_STATE_UPDATE', renderPayload);
+        this.render(renderPayload);
+
+        const speedDelay = state.room.speed === 'fast' ? 70 : 110;
+        setTimeout(() => this.gameLoop(), speedDelay);
+      }
+
+      applyGameStateUpdate(payload) {
+        this.render(payload);
+      }
+
+      render(data) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Arena Grid
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += this.cellW) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += this.cellH) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        // Render Orbs
+        (data.orbs || []).forEach(orb => {
+          ctx.fillStyle = orb.color;
+          ctx.shadowColor = orb.color;
+          ctx.shadowBlur = 15;
+          ctx.beginPath();
+          ctx.arc(orb.x * this.cellW + this.cellW / 2, orb.y * this.cellH + this.cellH / 2, this.cellW / 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // Render Snakes
+        const snakes = Object.values(data.snakes || {});
+        snakes.forEach(s => {
+          ctx.fillStyle = s.color;
+          ctx.shadowColor = s.color;
+          ctx.shadowBlur = 10;
+
+          s.body.forEach((seg, i) => {
+            const sizeReduce = i === 0 ? 0 : 2;
+            ctx.fillRect(
+              seg.x * this.cellW + sizeReduce / 2,
+              seg.y * this.cellH + sizeReduce / 2,
+              this.cellW - sizeReduce,
+              this.cellH - sizeReduce
+            );
+          });
+          ctx.shadowBlur = 0;
+        });
+
+        // HUD Score Update
+        this.updateHudScores(snakes);
+      }
+
+      updateHudScores(snakesList) {
+        const hud = document.getElementById('hud-scoreboard');
+        hud.innerHTML = '';
+        snakesList.forEach(s => {
+          const item = document.createElement('div');
+          item.className = 'flex items-center gap-1.5';
+          item.innerHTML = `<span class="w-2.5 h-2.5 rounded-full" style="background-color:${s.color}"></span> <span class="font-bold text-slate-200">${s.nickname}: ${s.score}</span>`;
+          hud.appendChild(item);
+        });
+      }
+
+      endMatch(winner) {
+        this.running = false;
+        soundEngine.sfxWin();
+        const standings = Object.values(this.snakes).map(s => ({ nickname: s.nickname, score: s.score })).sort((a,b) => b.score - a.score);
+        broadcastMsg('MATCH_ENDED', { winner: winner.nickname, standings });
+        showVictoryScreen(winner.nickname, standings);
+      }
+
+      destroy() {
+        this.running = false;
+      }
+    }
+
+    // --- GAME CLASS 2: CYBER PONG DUEL ---
+    class PongDuelSession {
+      constructor(isHost) {
+        this.isHost = isHost;
+        this.paddleWidth = 18;
+        this.paddleHeight = 110;
+        this.p1 = { y: canvas.height / 2 - 55, score: 0, id: null };
+        this.p2 = { y: canvas.height / 2 - 55, score: 0, id: null };
+        this.ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 7, vy: 5, radius: 10 };
+        this.inputs = {};
+        this.running = true;
+
+        if (this.isHost) {
+          this.p1.id = state.room.players[0]?.id;
+          this.p2.id = state.room.players[1]?.id || 'AI_BOT';
+          this.gameLoop();
+        }
+      }
+
+      handleRemoteInput(playerId, inputState) {
+        this.inputs[playerId] = inputState;
+      }
+
+      gameLoop() {
+        if (!this.running) return;
+
+        // Player 1 Input
+        const p1Inp = this.inputs[this.p1.id] || (this.p1.id === state.player.id ? state.input : {});
+        if (p1Inp.up) this.p1.y = Math.max(10, this.p1.y - 8);
+        if (p1Inp.down) this.p1.y = Math.min(canvas.height - 120, this.p1.y + 8);
+
+        // Player 2 / AI Input
+        if (state.room.isAI || this.p2.id === 'AI_BOT') {
+          // AI Logic
+          const targetY = this.ball.y - this.paddleHeight / 2;
+          if (this.p2.y < targetY - 10) this.p2.y += 6;
+          else if (this.p2.y > targetY + 10) this.p2.y -= 6;
+        } else {
+          const p2Inp = this.inputs[this.p2.id] || (this.p2.id === state.player.id ? state.input : {});
+          if (p2Inp.up) this.p2.y = Math.max(10, this.p2.y - 8);
+          if (p2Inp.down) this.p2.y = Math.min(canvas.height - 120, this.p2.y + 8);
+        }
+
+        // Ball Movement
+        this.ball.x += this.ball.vx;
+        this.ball.y += this.ball.vy;
+
+        // Top/Bottom Bounce
+        if (this.ball.y - this.ball.radius <= 0 || this.ball.y + this.ball.radius >= canvas.height) {
+          this.ball.vy *= -1;
+          soundEngine.sfxBounce();
+        }
+
+        // Paddle Collision - P1 (Left)
+        if (this.ball.x - this.ball.radius <= 35 &&
+            this.ball.y >= this.p1.y && this.ball.y <= this.p1.y + this.paddleHeight) {
+          this.ball.vx = Math.abs(this.ball.vx) + 0.3;
+          this.ball.x = 35 + this.ball.radius;
+          soundEngine.sfxBounce();
+        }
+
+        // Paddle Collision - P2 (Right)
+        if (this.ball.x + this.ball.radius >= canvas.width - 35 &&
+            this.ball.y >= this.p2.y && this.ball.y <= this.p2.y + this.paddleHeight) {
+          this.ball.vx = -Math.abs(this.ball.vx) - 0.3;
+          this.ball.x = canvas.width - 35 - this.ball.radius;
+          soundEngine.sfxBounce();
+        }
+
+        // Scoring
+        if (this.ball.x < 0) {
+          this.p2.score += 1;
+          soundEngine.sfxExplode();
+          this.resetBall(-1);
+        } else if (this.ball.x > canvas.width) {
+          this.p1.score += 1;
+          soundEngine.sfxExplode();
+          this.resetBall(1);
+        }
+
+        // Check Winner
+        const p1Name = state.room.players[0]?.nickname || 'Player 1';
+        const p2Name = state.room.players[1]?.nickname || 'Nexus AI';
+
+        if (this.p1.score >= state.room.scoreLimit) {
+          this.endMatch(p1Name);
+        } else if (this.p2.score >= state.room.scoreLimit) {
+          this.endMatch(p2Name);
+        }
+
+        const renderPayload = {
+          p1: this.p1, p2: this.p2, ball: this.ball,
+          p1Name, p2Name
+        };
+
+        broadcastMsg('GAME_STATE_UPDATE', renderPayload);
+        this.render(renderPayload);
+
+        requestAnimationFrame(() => this.gameLoop());
+      }
+
+      resetBall(dir) {
+        this.ball.x = canvas.width / 2;
+        this.ball.y = canvas.height / 2;
+        this.ball.vx = 7 * dir;
+        this.ball.vy = (Math.random() - 0.5) * 8;
+      }
+
+      applyGameStateUpdate(payload) {
+        this.render(payload);
+      }
+
+      render(data) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Center line
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.3)';
+        ctx.setLineDash([10, 10]);
+        ctx.beginPath(); ctx.moveTo(canvas.width / 2, 0); ctx.lineTo(canvas.width / 2, canvas.height); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Paddles
+        ctx.fillStyle = '#06b6d4';
+        ctx.shadowColor = '#06b6d4'; ctx.shadowBlur = 15;
+        ctx.fillRect(15, data.p1.y, this.paddleWidth, this.paddleHeight);
+
+        ctx.fillStyle = '#ec4899';
+        ctx.shadowColor = '#ec4899';
+        ctx.fillRect(canvas.width - 33, data.p2.y, this.paddleWidth, this.paddleHeight);
+
+        // Ball
+        ctx.fillStyle = '#eab308';
+        ctx.shadowColor = '#eab308';
+        ctx.beginPath();
+        ctx.arc(data.ball.x, data.ball.y, data.ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // HUD Scores
+        const hud = document.getElementById('hud-scoreboard');
+        hud.innerHTML = `
+          <span class="text-cyan-400 font-bold">${data.p1Name || 'P1'}: ${data.p1.score}</span>
+          <span class="text-slate-500">VS</span>
+          <span class="text-pink-400 font-bold">${data.p2Name || 'P2'}: ${data.p2.score}</span>
+        `;
+      }
+
+      endMatch(winnerName) {
+        this.running = false;
+        soundEngine.sfxWin();
+        const standings = [
+          { nickname: winnerName, score: state.room.scoreLimit }
+        ];
+        broadcastMsg('MATCH_ENDED', { winner: winnerName, standings });
+        showVictoryScreen(winnerName, standings);
+      }
+
+      destroy() { this.running = false; }
+    }
+
+    // --- GAME CLASS 3: RETRO LASER BLAST ---
+    class LaserBlastSession {
+      constructor(isHost) {
+        this.isHost = isHost;
+        this.ships = {};
+        this.lasers = [];
+        this.inputs = {};
+        this.running = true;
+
+        if (this.isHost) {
+          this.initHostState();
+          this.gameLoop();
+        }
+      }
+
+      initHostState() {
+        state.room.players.forEach((p, idx) => {
+          this.ships[p.id] = {
+            id: p.id,
+            nickname: p.nickname,
+            color: p.color,
+            x: 150 + idx * 250,
+            y: canvas.height / 2,
+            angle: 0,
+            score: 0,
+            cooldown: 0,
+            isBot: p.isBot || false
+          };
+          this.inputs[p.id] = { up: false, down: false, left: false, right: false, action: false };
+        });
+
+        addLogFeed("Retro Laser Blast Active! Aim & fire your neon energy pulse.");
+      }
+
+      handleRemoteInput(playerId, inputState) {
+        this.inputs[playerId] = inputState;
+      }
+
+      gameLoop() {
+        if (!this.running) return;
+
+        this.inputs[state.player.id] = state.input;
+
+        // Ships Update
+        Object.values(this.ships).forEach(ship => {
+          const inp = this.inputs[ship.id] || {};
+
+          if (ship.isBot) {
+            // Basic AI ship roaming and firing
+            ship.x += Math.cos(ship.angle) * 3;
+            ship.y += Math.sin(ship.angle) * 3;
+            if (Math.random() < 0.05) ship.angle += (Math.random() - 0.5);
+            if (Math.random() < 0.03 && ship.cooldown <= 0) {
+              this.fireLaser(ship);
+            }
+          } else {
+            if (inp.left) ship.angle -= 0.08;
+            if (inp.right) ship.angle += 0.08;
+            if (inp.up) {
+              ship.x += Math.cos(ship.angle) * 5;
+              ship.y += Math.sin(ship.angle) * 5;
+            }
+
+            if (inp.action && ship.cooldown <= 0) {
+              this.fireLaser(ship);
+              ship.cooldown = 15;
+            }
+          }
+
+          if (ship.cooldown > 0) ship.cooldown--;
+
+          // Screen bounds wrap
+          if (ship.x < 0) ship.x = canvas.width;
+          if (ship.x > canvas.width) ship.x = 0;
+          if (ship.y < 0) ship.y = canvas.height;
+          if (ship.y > canvas.height) ship.y = 0;
+        });
+
+        // Lasers Update
+        for (let idx = this.lasers.length - 1; idx >= 0; idx--) {
+          const l = this.lasers[idx];
+          l.x += Math.cos(l.angle) * 14;
+          l.y += Math.sin(l.angle) * 14;
+          l.life--;
+
+          // Collision Check with Ships
+          Object.values(this.ships).forEach(ship => {
+            if (ship.id !== l.ownerId) {
+              const dist = Math.hypot(ship.x - l.x, ship.y - l.y);
+              if (dist < 22) {
+                // Hit Particle Burst
+                for (let p = 0; p < 8; p++) {
+                  this.lasers.push({
+                    x: ship.x,
+                    y: ship.y,
+                    angle: Math.random() * Math.PI * 2,
+                    ownerId: 'PARTICLE',
+                    color: ship.color,
+                    life: 10
+                  });
+                }
+
+                soundEngine.sfxExplode();
+                const shooter = this.ships[l.ownerId];
+                if (shooter) {
+                  shooter.score += 1;
+                  addLogFeed(`${shooter.nickname} blasted ${ship.nickname}! (+1 PT)`);
+
+                  if (shooter.score >= state.room.scoreLimit) {
+                    this.endMatch(shooter);
+                  }
+                }
+                this.lasers.splice(idx, 1);
+              }
+            }
+          });
+        }
+
+        this.lasers = this.lasers.filter(l => l.life > 0);
+
+        const renderPayload = {
+          ships: this.ships,
+          lasers: this.lasers
+        };
+
+        broadcastMsg('GAME_STATE_UPDATE', renderPayload);
+        this.render(renderPayload);
+
+        requestAnimationFrame(() => this.gameLoop());
+      }
+
+      fireLaser(ship) {
+        soundEngine.sfxLaser();
+        this.lasers.push({
+          x: ship.x + Math.cos(ship.angle) * 20,
+          y: ship.y + Math.sin(ship.angle) * 20,
+          angle: ship.angle,
+          ownerId: ship.id,
+          color: ship.color,
+          life: 45
+        });
+      }
+
+      applyGameStateUpdate(payload) {
+        this.render(payload);
+      }
+
+      render(data) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Render Lasers
+        (data.lasers || []).forEach(l => {
+          ctx.strokeStyle = l.color;
+          ctx.shadowColor = l.color;
+          ctx.shadowBlur = 10;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(l.x, l.y);
+          ctx.lineTo(l.x - Math.cos(l.angle) * 15, l.y - Math.sin(l.angle) * 15);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        });
+
+        // Render Ships
+        const shipsList = Object.values(data.ships || {});
+        shipsList.forEach(ship => {
+          ctx.save();
+          ctx.translate(ship.x, ship.y);
+          ctx.rotate(ship.angle);
+
+          ctx.strokeStyle = ship.color;
+          ctx.fillStyle = ship.color + '44';
+          ctx.shadowColor = ship.color;
+          ctx.shadowBlur = 12;
+          ctx.lineWidth = 2;
+
+          ctx.beginPath();
+          ctx.moveTo(18, 0);
+          ctx.lineTo(-12, -12);
+          ctx.lineTo(-6, 0);
+          ctx.lineTo(-12, 12);
+          ctx.closePath();
+          ctx.stroke();
+          ctx.fill();
+
+          ctx.restore();
+        });
+
+        // Update Scores
+        const hud = document.getElementById('hud-scoreboard');
+        hud.innerHTML = '';
+        shipsList.forEach(s => {
+          const item = document.createElement('div');
+          item.className = 'flex items-center gap-1.5';
+          item.innerHTML = `<span class="w-2.5 h-2.5 rounded-full" style="background-color:${s.color}"></span> <span class="font-bold text-slate-200">${s.nickname}: ${s.score}</span>`;
+          hud.appendChild(item);
+        });
+      }
+
+      endMatch(winner) {
+        this.running = false;
+        soundEngine.sfxWin();
+        const standings = Object.values(this.ships).map(s => ({ nickname: s.nickname, score: s.score })).sort((a,b) => b.score - a.score);
+        broadcastMsg('MATCH_ENDED', { winner: winner.nickname, standings });
+        showVictoryScreen(winner.nickname, standings);
+      }
+
+      destroy() { this.running = false; }
+    }
+
+    // --- 9. VICTORY PODIUM DISPLAY ---
+    function showVictoryScreen(winnerName, standings) {
+      if (gameSession) gameSession.destroy();
+      switchView('view-victory');
+
+      document.getElementById('winner-name').textContent = winnerName;
+
+      const standingsContainer = document.getElementById('victory-standings-list');
+      standingsContainer.innerHTML = '';
+
+      (standings || []).forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center text-slate-300 py-1 border-b border-slate-800/60';
+        row.innerHTML = `
+          <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} ${item.nickname}</span>
+          <span class="font-bold text-cyan-400">${item.score} PTS</span>
+        `;
+        standingsContainer.appendChild(row);
+      });
+
+      // Confetti Celebration
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+
+    document.getElementById('btn-return-lobby').addEventListener('click', () => {
+      soundEngine.sfxBounce();
+      switchView('view-room-lobby');
+    });
+
+  </script>
+</body>
+</html>
